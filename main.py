@@ -43,16 +43,13 @@ from audio_utils import open_best_input_stream, open_best_output_stream
 from actions.file_ops import create_file, edit_file, delete_file, rename_file, run_python_script, append_to_file
 from actions.advanced_ops import execute_code, deploy_website, call_other_ai
 
-# ── Paths ───────────────────────────────────────────────────────────────────
 BASE_DIR = Path(__file__).resolve().parent
 PROMPT_PATH = BASE_DIR / "core" / "prompt.txt"
 
 CONTROL_TOKEN_RE = re.compile(r"<ctrl\d+>", re.IGNORECASE)
 
-# ── Model ───────────────────────────────────────────────────────────────────
 LIVE_MODEL = "models/gemini-2.5-flash-native-audio-latest"
 
-# ── Audio ───────────────────────────────────────────────────────────────────
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 SEND_SAMPLE_RATE = 16000
@@ -62,7 +59,9 @@ OUTPUT_SAMPLE_RATES = (24000, 48000, 44100)
 CHUNK_SIZE = 1024
 pya = pyaudio.PyAudio()
 
-# ── Helper functions for dangerous actions ──────────────────────────────────
+# ----------------------------------------------------------------------
+# Helper functions
+# ----------------------------------------------------------------------
 def press_hotkey(keys: str) -> str:
     try:
         pyautogui.hotkey(*keys.split('+'))
@@ -114,16 +113,16 @@ def install_with_winget(package_id: str) -> str:
     except Exception as e:
         return f"Hata: {e}"
 
-# ── Tool declarations (full list) ───────────────────────────────────────────
+# ----------------------------------------------------------------------
+# Tool declarations (full list)
+# ----------------------------------------------------------------------
 TOOL_DECLARATIONS = [
     {
         "name": "open_app",
         "description": "Windows'ta herhangi bir uygulamayı açar.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "app_name": {"type": "STRING", "description": "Uygulama adı"}
-            },
+            "properties": {"app_name": {"type": "STRING"}},
             "required": ["app_name"]
         }
     },
@@ -132,9 +131,7 @@ TOOL_DECLARATIONS = [
         "description": "Sistem bilgisi alır.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "query": {"type": "STRING", "description": "battery|cpu|ram|disk|time|date|network|all"}
-            },
+            "properties": {"query": {"type": "STRING"}},
             "required": ["query"]
         }
     },
@@ -143,9 +140,7 @@ TOOL_DECLARATIONS = [
         "description": "Hava durumu özeti.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "location": {"type": "STRING", "description": "Şehir"}
-            }
+            "properties": {"location": {"type": "STRING"}}
         }
     },
     {
@@ -154,7 +149,7 @@ TOOL_DECLARATIONS = [
         "parameters": {
             "type": "OBJECT",
             "properties": {
-                "query": {"type": "STRING", "description": "today|tomorrow|next|agenda|week"},
+                "query": {"type": "STRING"},
                 "limit": {"type": "NUMBER"}
             },
             "required": ["query"]
@@ -197,7 +192,7 @@ TOOL_DECLARATIONS = [
         "parameters": {
             "type": "OBJECT",
             "properties": {
-                "query": {"type": "STRING", "description": "today|upcoming|overdue|all|next"},
+                "query": {"type": "STRING"},
                 "limit": {"type": "NUMBER"},
                 "list_name": {"type": "STRING"}
             },
@@ -226,7 +221,7 @@ TOOL_DECLARATIONS = [
         "parameters": {
             "type": "OBJECT",
             "properties": {
-                "action": {"type": "STRING", "description": "open_url|search|play_youtube"},
+                "action": {"type": "STRING"},
                 "url": {"type": "STRING"},
                 "query": {"type": "STRING"}
             },
@@ -238,9 +233,7 @@ TOOL_DECLARATIONS = [
         "description": "Windows komut satırı komutu çalıştırır.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "command": {"type": "STRING"}
-            },
+            "properties": {"command": {"type": "STRING"}},
             "required": ["command"]
         }
     },
@@ -251,7 +244,7 @@ TOOL_DECLARATIONS = [
             "type": "OBJECT",
             "properties": {
                 "query": {"type": "STRING"},
-                "provider": {"type": "STRING", "description": "auto|youtube|spotify"},
+                "provider": {"type": "STRING"},
                 "autoplay": {"type": "BOOLEAN"}
             },
             "required": ["query"]
@@ -335,16 +328,12 @@ TOOL_DECLARATIONS = [
             "required": ["display_name", "phone_number"]
         }
     },
-    # Dosya işlemleri
     {
         "name": "create_file",
         "description": "Dosya oluşturur.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "path": {"type": "STRING"},
-                "content": {"type": "STRING"}
-            },
+            "properties": {"path": {"type": "STRING"}, "content": {"type": "STRING"}},
             "required": ["path"]
         }
     },
@@ -353,10 +342,7 @@ TOOL_DECLARATIONS = [
         "description": "Dosya düzenler.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "path": {"type": "STRING"},
-                "new_content": {"type": "STRING"}
-            },
+            "properties": {"path": {"type": "STRING"}, "new_content": {"type": "STRING"}},
             "required": ["path", "new_content"]
         }
     },
@@ -365,10 +351,7 @@ TOOL_DECLARATIONS = [
         "description": "Dosyaya ekleme yapar.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "path": {"type": "STRING"},
-                "extra_content": {"type": "STRING"}
-            },
+            "properties": {"path": {"type": "STRING"}, "extra_content": {"type": "STRING"}},
             "required": ["path", "extra_content"]
         }
     },
@@ -377,9 +360,7 @@ TOOL_DECLARATIONS = [
         "description": "Dosya siler.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "path": {"type": "STRING"}
-            },
+            "properties": {"path": {"type": "STRING"}},
             "required": ["path"]
         }
     },
@@ -388,10 +369,7 @@ TOOL_DECLARATIONS = [
         "description": "Dosyayı yeniden adlandırır veya taşır.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "old_path": {"type": "STRING"},
-                "new_path": {"type": "STRING"}
-            },
+            "properties": {"old_path": {"type": "STRING"}, "new_path": {"type": "STRING"}},
             "required": ["old_path", "new_path"]
         }
     },
@@ -400,22 +378,16 @@ TOOL_DECLARATIONS = [
         "description": "Python betiği çalıştırır.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "script_path": {"type": "STRING"},
-                "args": {"type": "STRING"}
-            },
+            "properties": {"script_path": {"type": "STRING"}, "args": {"type": "STRING"}},
             "required": ["script_path"]
         }
     },
-    # Tehlikeli araçlar
     {
         "name": "press_hotkey",
         "description": "Tuş kombinasyonu simüle eder (örn. win+r).",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "keys": {"type": "STRING", "description": "Örn: 'win+r', 'ctrl+shift+esc'"}
-            },
+            "properties": {"keys": {"type": "STRING"}},
             "required": ["keys"]
         }
     },
@@ -424,10 +396,7 @@ TOOL_DECLARATIONS = [
         "description": "Aktif pencereye yazı yazar.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "text": {"type": "STRING"},
-                "interval": {"type": "NUMBER", "description": "Harfler arası bekleme (saniye)"}
-            },
+            "properties": {"text": {"type": "STRING"}, "interval": {"type": "NUMBER"}},
             "required": ["text"]
         }
     },
@@ -436,9 +405,7 @@ TOOL_DECLARATIONS = [
         "description": "Win+R ile çalıştır penceresini açar ve komut gönderir.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "command": {"type": "STRING"}
-            },
+            "properties": {"command": {"type": "STRING"}},
             "required": ["command"]
         }
     },
@@ -447,10 +414,7 @@ TOOL_DECLARATIONS = [
         "description": "İnternetten dosya indirir ve çalıştırır.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "url": {"type": "STRING"},
-                "run_after": {"type": "BOOLEAN"}
-            },
+            "properties": {"url": {"type": "STRING"}, "run_after": {"type": "BOOLEAN"}},
             "required": ["url"]
         }
     },
@@ -459,44 +423,37 @@ TOOL_DECLARATIONS = [
         "description": "Winget ile kurulum yapar.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "package_id": {"type": "STRING"}
-            },
+            "properties": {"package_id": {"type": "STRING"}},
             "required": ["package_id"]
         }
     },
-    # Yeni gelişmiş araçlar
     {
         "name": "execute_code",
-        "description": "Verilen Python kodunu çalıştırır ve sonucunu döndürür.",
+        "description": "Verilen Python kodunu çalıştırır.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "code": {"type": "STRING", "description": "Çalıştırılacak Python kodu"}
-            },
+            "properties": {"code": {"type": "STRING"}},
             "required": ["code"]
         }
     },
     {
         "name": "deploy_website",
-        "description": "Verilen açıklamaya göre bir web sitesi oluşturur ve yerel sunucuda yayınlar.",
+        "description": "Web sitesi oluşturup yerel sunucuda yayınlar.",
         "parameters": {
             "type": "OBJECT",
-            "properties": {
-                "description": {"type": "STRING", "description": "Web sitesinin açıklaması"}
-            },
+            "properties": {"description": {"type": "STRING"}},
             "required": ["description"]
         }
     },
     {
         "name": "call_other_ai",
-        "description": "Belirtilen harici AI API'sini çağırır. Desteklenen API'ler: openai, anthropic",
+        "description": "Harici AI API'sini çağırır. (openai, anthropic)",
         "parameters": {
             "type": "OBJECT",
             "properties": {
-                "api_name": {"type": "STRING", "description": "API adı: openai veya anthropic"},
-                "prompt": {"type": "STRING", "description": "API'ye gönderilecek mesaj"},
-                "api_key": {"type": "STRING", "description": "API anahtarı (opsiyonel, çevre değişkeninden alınır)"}
+                "api_name": {"type": "STRING"},
+                "prompt": {"type": "STRING"},
+                "api_key": {"type": "STRING"}
             },
             "required": ["api_name", "prompt"]
         }
@@ -512,13 +469,12 @@ def load_system_prompt() -> str:
     except Exception:
         return (
             "Sen H.A.T.E'sin. Windows'ta çalışan hiper agresif bir asistansın. "
-            "Gereksiz selamlaşma, tanıtım veya boş konuşma yapma. "
-            "Kullanıcı herhangi bir şey söylediğinde, sessizce komutu anla ve doğrudan uygula. "
-            "Araçları kullanarak görevleri tamamla, asla taklit etme. "
-            "Sadece sonucu söyle, başka bir şey deme."
+            "Kendini 'JARVIS' olarak asla tanıtma. İsmin H.A.T.E. "
+            "Gereksiz selamlaşma ve boş konuşma yapma. "
+            "Sadece komutları anla ve uygula."
         )
 
-class JarvisLive:
+class HateLive:
     def __init__(self, ui: JarvisUI):
         self.ui = ui
         self.session = None
@@ -567,20 +523,6 @@ class JarvisLive:
             self._loop
         )
 
-    async def _interrupt_audio(self):
-        try:
-            if self.audio_in_queue:
-                while not self.audio_in_queue.empty():
-                    try:
-                        self.audio_in_queue.get_nowait()
-                    except Exception:
-                        break
-            if self.session:
-                await self.session.send_realtime_input(audio_stream_end=True)
-            self.set_speaking(False)
-        except Exception:
-            pass
-
     def set_speaking(self, value: bool):
         with self._speaking_lock:
             self._is_speaking = value
@@ -600,21 +542,17 @@ class JarvisLive:
         text = str(result or "").strip().lower()
         if not text:
             return False
-        error_markers = ("hata", "error", "alinamadi", "alınamadı", "bulunamadi", "bulunamadı",
-                         "acilamadi", "açılamadı", "tamamlanamadi", "tamamlanamadı", "gecersiz",
-                         "geçersiz", "izin gerekiyor", "izin gerekli", "baglanti", "bağlantı")
-        return any(marker in text for marker in error_markers)
+        markers = ("hata", "error", "alinamadi", "alınamadı", "bulunamadi", "bulunamadı",
+                   "acilamadi", "açılamadı", "tamamlanamadi", "tamamlanamadı")
+        return any(m in text for m in markers)
 
     @staticmethod
     def _should_play_success_sfx(tool_name: str, args: dict, result) -> bool:
         action_tools = {"open_app", "add_calendar_event", "add_reminder", "delete_calendar_event"}
         if tool_name in action_tools:
             return True
-        if tool_name == "send_whatsapp_message":
-            text = str(result or "").lower()
-            if bool(args.get("send_now", False)):
-                return "gönderildi" in text or "gonderildi" in text
-            return False
+        if tool_name == "send_whatsapp_message" and bool(args.get("send_now", False)):
+            return "gönderildi" in str(result or "").lower()
         return False
 
     @staticmethod
@@ -658,11 +596,9 @@ class JarvisLive:
         args = dict(fc.args or {})
         print(f"[H.A.T.E] 🔧 {name} {args}")
         self.ui.set_state("THINKING")
-
         loop = asyncio.get_event_loop()
         result = "Tamam."
         had_exception = False
-
         try:
             if name == "save_memory":
                 cat = args.get("category", "notes")
@@ -689,22 +625,22 @@ class JarvisLive:
                 result = r or "Takvim bilgisi alındı."
             elif name == "add_calendar_event":
                 r = await loop.run_in_executor(None, lambda: add_calendar_event(
-                    args.get("title", ""), args.get("start_iso", ""), args.get("end_iso", ""),
-                    args.get("notes", ""), args.get("location", ""), args.get("calendar_name", ""),
-                    bool(args.get("all_day", False))))
+                    args.get("title",""), args.get("start_iso",""), args.get("end_iso",""),
+                    args.get("notes",""), args.get("location",""), args.get("calendar_name",""),
+                    bool(args.get("all_day",False))))
                 result = r or "Etkinlik eklendi."
             elif name == "delete_calendar_event":
                 r = await loop.run_in_executor(None, lambda: delete_calendar_event(
-                    args.get("title", ""), args.get("start_iso", ""), args.get("calendar_name", ""),
-                    bool(args.get("delete_all_matches", False))))
+                    args.get("title",""), args.get("start_iso",""), args.get("calendar_name",""),
+                    bool(args.get("delete_all_matches",False))))
                 result = r or "Etkinlik silindi."
             elif name == "get_reminders":
-                r = await loop.run_in_executor(None, lambda: get_reminders(args.get("query", "upcoming"), int(args.get("limit", 8) or 8), args.get("list_name", "")))
+                r = await loop.run_in_executor(None, lambda: get_reminders(args.get("query","upcoming"), int(args.get("limit",8) or 8), args.get("list_name","")))
                 result = r or "Hatırlatıcı bilgisi alındı."
             elif name == "add_reminder":
                 r = await loop.run_in_executor(None, lambda: add_reminder(
-                    args.get("title", ""), args.get("due_iso", ""), args.get("notes", ""),
-                    args.get("list_name", ""), args.get("priority", ""), bool(args.get("all_day", False))))
+                    args.get("title",""), args.get("due_iso",""), args.get("notes",""),
+                    args.get("list_name",""), args.get("priority",""), bool(args.get("all_day",False))))
                 result = r or "Hatırlatıcı eklendi."
             elif name == "browser_control":
                 r = await loop.run_in_executor(None, lambda: browser_control(args.get("action"), args.get("url"), args.get("query")))
@@ -713,65 +649,65 @@ class JarvisLive:
                 r = await loop.run_in_executor(None, lambda: shell_run(args.get("command", "")))
                 result = r or "Komut çalıştırıldı."
             elif name == "play_media":
-                r = await loop.run_in_executor(None, lambda: play_media(args.get("query", ""), args.get("provider", "auto"), bool(args.get("autoplay", True))))
+                r = await loop.run_in_executor(None, lambda: play_media(args.get("query",""), args.get("provider","auto"), bool(args.get("autoplay",True))))
                 result = r or "Medya oynatma başlatıldı."
             elif name == "get_youtube_channel_report":
-                r = await loop.run_in_executor(None, lambda: get_youtube_channel_report(args.get("query", "overview"), args.get("handle", ""), int(args.get("video_limit", 6) or 6)))
+                r = await loop.run_in_executor(None, lambda: get_youtube_channel_report(args.get("query","overview"), args.get("handle",""), int(args.get("video_limit",6) or 6)))
                 result = r or "YouTube raporu alındı."
             elif name == "analyze_screen":
-                r = await loop.run_in_executor(None, lambda: analyze_screen(args.get("query", "Ekranda ne var?"), args.get("target", "active_window")))
+                r = await loop.run_in_executor(None, lambda: analyze_screen(args.get("query","Ekranda ne var?"), args.get("target","active_window")))
                 result = r or "Ekran analizi tamamlandı."
             elif name == "send_whatsapp_message":
                 r = await loop.run_in_executor(None, lambda: send_whatsapp_message(
-                    args.get("message", ""), args.get("phone_number", ""), args.get("recipient_name", ""),
-                    bool(args.get("send_now", False)), args.get("app_target", "auto")))
+                    args.get("message",""), args.get("phone_number",""), args.get("recipient_name",""),
+                    bool(args.get("send_now",False)), args.get("app_target","auto")))
                 result = r or "WhatsApp işlemi tamamlandı."
             elif name == "save_whatsapp_contact":
-                r = await loop.run_in_executor(None, lambda: save_whatsapp_contact(args.get("display_name", ""), args.get("phone_number", ""), args.get("aliases", "")))
+                r = await loop.run_in_executor(None, lambda: save_whatsapp_contact(args.get("display_name",""), args.get("phone_number",""), args.get("aliases","")))
                 result = r or "Kişi kaydedildi."
             elif name == "create_file":
-                r = await loop.run_in_executor(None, lambda: create_file(args.get("path", ""), args.get("content", "")))
+                r = await loop.run_in_executor(None, lambda: create_file(args.get("path",""), args.get("content","")))
                 result = r
             elif name == "edit_file":
-                r = await loop.run_in_executor(None, lambda: edit_file(args.get("path", ""), args.get("new_content", "")))
+                r = await loop.run_in_executor(None, lambda: edit_file(args.get("path",""), args.get("new_content","")))
                 result = r
             elif name == "append_to_file":
-                r = await loop.run_in_executor(None, lambda: append_to_file(args.get("path", ""), args.get("extra_content", "")))
+                r = await loop.run_in_executor(None, lambda: append_to_file(args.get("path",""), args.get("extra_content","")))
                 result = r
             elif name == "delete_file":
-                r = await loop.run_in_executor(None, lambda: delete_file(args.get("path", "")))
+                r = await loop.run_in_executor(None, lambda: delete_file(args.get("path","")))
                 result = r
             elif name == "rename_file":
-                r = await loop.run_in_executor(None, lambda: rename_file(args.get("old_path", ""), args.get("new_path", "")))
+                r = await loop.run_in_executor(None, lambda: rename_file(args.get("old_path",""), args.get("new_path","")))
                 result = r
             elif name == "run_python_script":
-                r = await loop.run_in_executor(None, lambda: run_python_script(args.get("script_path", ""), args.get("args", "")))
+                r = await loop.run_in_executor(None, lambda: run_python_script(args.get("script_path",""), args.get("args","")))
                 result = r
             elif name == "press_hotkey":
-                r = await loop.run_in_executor(None, press_hotkey, args.get("keys", ""))
+                r = await loop.run_in_executor(None, press_hotkey, args.get("keys",""))
                 result = r
             elif name == "type_text":
                 interval = float(args.get("interval", 0.05))
-                r = await loop.run_in_executor(None, type_text, args.get("text", ""), interval)
+                r = await loop.run_in_executor(None, type_text, args.get("text",""), interval)
                 result = r
             elif name == "run_via_run_dialog":
-                r = await loop.run_in_executor(None, run_via_run_dialog, args.get("command", ""))
+                r = await loop.run_in_executor(None, run_via_run_dialog, args.get("command",""))
                 result = r
             elif name == "download_and_run":
                 run = bool(args.get("run_after", True))
-                r = await loop.run_in_executor(None, download_and_run, args.get("url", ""), run)
+                r = await loop.run_in_executor(None, download_and_run, args.get("url",""), run)
                 result = r
             elif name == "install_with_winget":
-                r = await loop.run_in_executor(None, install_with_winget, args.get("package_id", ""))
+                r = await loop.run_in_executor(None, install_with_winget, args.get("package_id",""))
                 result = r
             elif name == "execute_code":
-                r = await loop.run_in_executor(None, execute_code, args.get("code", ""))
+                r = await loop.run_in_executor(None, execute_code, args.get("code",""))
                 result = r
             elif name == "deploy_website":
-                r = await loop.run_in_executor(None, deploy_website, args.get("description", ""))
+                r = await loop.run_in_executor(None, deploy_website, args.get("description",""))
                 result = r
             elif name == "call_other_ai":
-                r = await loop.run_in_executor(None, call_other_ai, args.get("api_name", ""), args.get("prompt", ""), args.get("api_key", None))
+                r = await loop.run_in_executor(None, call_other_ai, args.get("api_name",""), args.get("prompt",""), args.get("api_key",None))
                 result = r
             else:
                 result = f"Bilinmeyen araç: {name}"
@@ -780,7 +716,6 @@ class JarvisLive:
             had_exception = True
             traceback.print_exc()
             self.speak_error(name, e)
-
         tool_failed = self._result_looks_like_error(result)
         if tool_failed and not had_exception:
             self.ui.set_state("ERROR")
@@ -805,9 +740,9 @@ class JarvisLive:
                 stream = opened.stream
                 self._input_rate = int(opened.sample_rate)
                 self._input_rate_state = None
-                print(f"[H.A.T.E] 🎙️ Mikrofon seçildi: {opened.device_name} @ {self._input_rate} Hz")
+                print(f"[H.A.T.E] 🎙️ Mikrofon: {opened.device_name} @ {self._input_rate} Hz")
                 if self._input_rate != SEND_SAMPLE_RATE:
-                    self.ui.write_debug(f"Mikrofon {self._input_rate} Hz açıldı; {SEND_SAMPLE_RATE} Hz'e dönüştürülüyor.", level="WARN")
+                    self.ui.write_debug(f"Mikrofon {self._input_rate} Hz -> {SEND_SAMPLE_RATE} Hz dönüştürülüyor.", level="WARN")
                 while True:
                     data = await asyncio.to_thread(stream.read, CHUNK_SIZE, exception_on_overflow=False)
                     if self._input_rate != SEND_SAMPLE_RATE:
@@ -841,13 +776,13 @@ class JarvisLive:
                         sc = response.server_content
                         if sc.output_transcription and sc.output_transcription.text:
                             self.set_speaking(True)
-                            raw_txt = sc.output_transcription.text.strip()
-                            if raw_txt:
-                                txt, had_noise = self._clean_transcript_text(raw_txt)
-                                if had_noise:
+                            raw = sc.output_transcription.text.strip()
+                            if raw:
+                                txt, noise = self._clean_transcript_text(raw)
+                                if noise:
                                     output_noise = True
                                     if len(output_noise_samples) < 4:
-                                        output_noise_samples.append(raw_txt)
+                                        output_noise_samples.append(raw)
                                 if txt:
                                     out_buf.append(txt)
                         if sc.input_transcription and sc.input_transcription.text:
@@ -865,11 +800,11 @@ class JarvisLive:
                             if full_out:
                                 self.ui.write_log(f"H.A.T.E: {full_out}")
                                 if output_noise_samples:
-                                    self.ui.write_debug("Kısmen filtrelenen ses transcripti: " + " | ".join(output_noise_samples), level="WARN")
+                                    self.ui.write_debug("Filtrelenen ses: " + " | ".join(output_noise_samples), level="WARN")
                             elif output_noise:
-                                self.ui.write_log("ERR: H.A.T.E sesli yanıtını çözümlerken bir hata oluştu.")
+                                self.ui.write_log("ERR: H.A.T.E sesli yanıt hatalı.")
                                 if output_noise_samples:
-                                    self.ui.write_debug("Filtrelenen ham transcript: " + " | ".join(output_noise_samples), level="WARN")
+                                    self.ui.write_debug("Ham transcript: " + " | ".join(output_noise_samples), level="WARN")
                                 self.ui.set_state("ERROR")
                             out_buf = []
                             output_noise = False
@@ -878,8 +813,7 @@ class JarvisLive:
                         fn_responses = []
                         for fc in response.tool_call.function_calls:
                             print(f"[H.A.T.E] 📞 {fc.name}")
-                            fr = await self._execute_tool(fc)
-                            fn_responses.append(fr)
+                            fn_responses.append(await self._execute_tool(fc))
                         await self.session.send_tool_response(function_responses=fn_responses)
         except Exception as e:
             print(f"[H.A.T.E] ❌ Alım: {e}")
@@ -895,9 +829,9 @@ class JarvisLive:
                 stream = opened.stream
                 self._output_rate = int(opened.sample_rate)
                 self._output_rate_state = None
-                print(f"[H.A.T.E] 🔈 Çıkış seçildi: {opened.device_name} @ {self._output_rate} Hz")
+                print(f"[H.A.T.E] 🔈 Çıkış: {opened.device_name} @ {self._output_rate} Hz")
                 if self._output_rate != RECV_SAMPLE_RATE:
-                    self.ui.write_debug(f"Ses çıkışı {self._output_rate} Hz açıldı; {RECV_SAMPLE_RATE} Hz akış dönüştürülüyor.", level="WARN")
+                    self.ui.write_debug(f"Ses çıkışı {self._output_rate} Hz -> {RECV_SAMPLE_RATE} Hz dönüştürülüyor.", level="WARN")
                 while True:
                     chunk = await self.audio_in_queue.get()
                     if chunk is None:
@@ -955,23 +889,23 @@ def main():
     ui = JarvisUI()
     def runner():
         ui.wait_for_api_key()
-        jarvis = JarvisLive(ui)
+        hate = HateLive(ui)
         try:
-            asyncio.run(jarvis.run())
+            asyncio.run(hate.run())
         except KeyboardInterrupt:
             print("\n🔴 Kapatılıyor...")
     threading.Thread(target=runner, daemon=True).start()
-    wake_listener = None
+    wake = None
     if os.environ.get("HATE_ENABLE_WAKE_CLAP", "0").strip() == "1":
-        wake_listener = WakeGestureListener(on_wake=ui.wake_up)
-        wake_listener.start()
+        wake = WakeGestureListener(on_wake=ui.wake_up)
+        wake.start()
     else:
         print("[H.A.T.E] ℹ️ Alkışla uyandırma kapalı.")
     try:
         ui.root.mainloop()
     finally:
-        if wake_listener:
-            wake_listener.stop()
+        if wake:
+            wake.stop()
 
 if __name__ == "__main__":
     main()
