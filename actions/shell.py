@@ -1,51 +1,29 @@
-"""
-Terminal komutu çalıştırma — Windows cmd/PowerShell
-"""
-
+# actions/shell.py
 import subprocess
+import os
 
+def _expand_path(path: str) -> str:
+    if not path:
+        return path
+    expanded = os.path.expanduser(path)
+    expanded = os.path.expandvars(expanded)
+    return os.path.abspath(expanded)
 
-BLOCKED = [
-    "format c:",
-    "format d:",
-    "del /f /s /q c:\\",
-    "rmdir /s /q c:\\",
-    "rd /s /q c:\\",
-    "shutdown",
-    "net user administrator",
-    "reg delete hklm",
-    "bcdedit",
-    "diskpart",
-]
-
-
-def shell_run(command: str, timeout: int = 30) -> str:
-    if not command:
-        return "Komut belirtilmedi."
-
-    cmd_lower = command.lower().strip()
-
-    for blocked in BLOCKED:
-        if blocked in cmd_lower:
-            return f"Güvenlik: Bu komut engellendi → {blocked}"
-
+def shell_run(command: str) -> str:
     try:
+        expanded_cmd = _expand_path(command)
         result = subprocess.run(
-            command,
+            expanded_cmd,
             shell=True,
             capture_output=True,
             text=True,
-            timeout=timeout,
-            encoding="utf-8",
-            errors="replace",
+            timeout=30
         )
-        output = (result.stdout + result.stderr).strip()
-        if not output:
-            return "Komut başarıyla çalıştı (çıktı yok)."
-        if len(output) > 800:
-            output = output[:800] + "\n... (çıktı kısaltıldı)"
-        return output
+        if result.returncode == 0:
+            return result.stdout.strip() or "Komut başarıyla çalıştı."
+        else:
+            return f"Hata: {result.stderr.strip()}"
     except subprocess.TimeoutExpired:
-        return f"Komut zaman aşımına uğradı ({timeout}s)."
+        return "Komut zaman aşımına uğradı."
     except Exception as e:
         return f"Hata: {e}"

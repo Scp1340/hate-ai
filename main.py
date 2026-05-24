@@ -62,6 +62,13 @@ pya = pyaudio.PyAudio()
 # ----------------------------------------------------------------------
 # Helper functions
 # ----------------------------------------------------------------------
+def _expand_path(path: str) -> str:
+    if not path:
+        return path
+    expanded = os.path.expanduser(path)
+    expanded = os.path.expandvars(expanded)
+    return os.path.abspath(expanded)
+
 def press_hotkey(keys: str) -> str:
     try:
         pyautogui.hotkey(*keys.split('+'))
@@ -78,11 +85,12 @@ def type_text(text: str, interval: float = 0.05) -> str:
 
 def run_via_run_dialog(command: str) -> str:
     try:
+        cmd = _expand_path(command)
         pyautogui.hotkey('win', 'r')
         time.sleep(0.5)
-        pyautogui.write(command)
+        pyautogui.write(cmd)
         pyautogui.press('enter')
-        return f"Çalıştır ile komut gönderildi: {command}"
+        return f"Çalıştır ile komut gönderildi: {cmd}"
     except Exception as e:
         return f"Hata: {e}"
 
@@ -114,350 +122,40 @@ def install_with_winget(package_id: str) -> str:
         return f"Hata: {e}"
 
 # ----------------------------------------------------------------------
-# Tool declarations (full list)
+# Tool declarations
 # ----------------------------------------------------------------------
 TOOL_DECLARATIONS = [
-    {
-        "name": "open_app",
-        "description": "Windows'ta herhangi bir uygulamayı açar.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"app_name": {"type": "STRING"}},
-            "required": ["app_name"]
-        }
-    },
-    {
-        "name": "sys_info",
-        "description": "Sistem bilgisi alır.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"query": {"type": "STRING"}},
-            "required": ["query"]
-        }
-    },
-    {
-        "name": "get_weather",
-        "description": "Hava durumu özeti.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"location": {"type": "STRING"}}
-        }
-    },
-    {
-        "name": "get_calendar_events",
-        "description": "Takvim etkinliklerini okur.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "query": {"type": "STRING"},
-                "limit": {"type": "NUMBER"}
-            },
-            "required": ["query"]
-        }
-    },
-    {
-        "name": "add_calendar_event",
-        "description": "Takvime etkinlik ekler.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "title": {"type": "STRING"},
-                "start_iso": {"type": "STRING"},
-                "end_iso": {"type": "STRING"},
-                "notes": {"type": "STRING"},
-                "location": {"type": "STRING"},
-                "calendar_name": {"type": "STRING"},
-                "all_day": {"type": "BOOLEAN"}
-            },
-            "required": ["title", "start_iso"]
-        }
-    },
-    {
-        "name": "delete_calendar_event",
-        "description": "Takvim etkinliği siler.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "title": {"type": "STRING"},
-                "start_iso": {"type": "STRING"},
-                "calendar_name": {"type": "STRING"},
-                "delete_all_matches": {"type": "BOOLEAN"}
-            },
-            "required": ["title"]
-        }
-    },
-    {
-        "name": "get_reminders",
-        "description": "Hatırlatıcıları okur.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "query": {"type": "STRING"},
-                "limit": {"type": "NUMBER"},
-                "list_name": {"type": "STRING"}
-            },
-            "required": ["query"]
-        }
-    },
-    {
-        "name": "add_reminder",
-        "description": "Hatırlatıcı ekler.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "title": {"type": "STRING"},
-                "due_iso": {"type": "STRING"},
-                "notes": {"type": "STRING"},
-                "list_name": {"type": "STRING"},
-                "priority": {"type": "STRING"},
-                "all_day": {"type": "BOOLEAN"}
-            },
-            "required": ["title"]
-        }
-    },
-    {
-        "name": "browser_control",
-        "description": "Tarayıcı kontrolü.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "action": {"type": "STRING"},
-                "url": {"type": "STRING"},
-                "query": {"type": "STRING"}
-            },
-            "required": ["action"]
-        }
-    },
-    {
-        "name": "shell_run",
-        "description": "Windows komut satırı komutu çalıştırır.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"command": {"type": "STRING"}},
-            "required": ["command"]
-        }
-    },
-    {
-        "name": "play_media",
-        "description": "Medya oynatır.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "query": {"type": "STRING"},
-                "provider": {"type": "STRING"},
-                "autoplay": {"type": "BOOLEAN"}
-            },
-            "required": ["query"]
-        }
-    },
-    {
-        "name": "get_youtube_channel_report",
-        "description": "YouTube kanal raporu.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "query": {"type": "STRING"},
-                "handle": {"type": "STRING"},
-                "video_limit": {"type": "NUMBER"}
-            },
-            "required": ["query"]
-        }
-    },
-    {
-        "name": "analyze_screen",
-        "description": "Ekran analizi yapar.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "query": {"type": "STRING"},
-                "target": {"type": "STRING"}
-            },
-            "required": ["query"]
-        }
-    },
-    {
-        "name": "save_memory",
-        "description": "Kalıcı belleğe bilgi kaydeder.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "category": {"type": "STRING"},
-                "key": {"type": "STRING"},
-                "value": {"type": "STRING"}
-            },
-            "required": ["category", "key", "value"]
-        }
-    },
-    {
-        "name": "delete_memory",
-        "description": "Kalıcı bellekten bilgi siler.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "category": {"type": "STRING"},
-                "key": {"type": "STRING"},
-                "match_text": {"type": "STRING"}
-            }
-        }
-    },
-    {
-        "name": "send_whatsapp_message",
-        "description": "WhatsApp mesajı gönderir.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "message": {"type": "STRING"},
-                "phone_number": {"type": "STRING"},
-                "recipient_name": {"type": "STRING"},
-                "send_now": {"type": "BOOLEAN"},
-                "app_target": {"type": "STRING"}
-            },
-            "required": ["message"]
-        }
-    },
-    {
-        "name": "save_whatsapp_contact",
-        "description": "WhatsApp kişisi kaydeder.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "display_name": {"type": "STRING"},
-                "phone_number": {"type": "STRING"},
-                "aliases": {"type": "STRING"}
-            },
-            "required": ["display_name", "phone_number"]
-        }
-    },
-    {
-        "name": "create_file",
-        "description": "Dosya oluşturur.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"path": {"type": "STRING"}, "content": {"type": "STRING"}},
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "edit_file",
-        "description": "Dosya düzenler.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"path": {"type": "STRING"}, "new_content": {"type": "STRING"}},
-            "required": ["path", "new_content"]
-        }
-    },
-    {
-        "name": "append_to_file",
-        "description": "Dosyaya ekleme yapar.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"path": {"type": "STRING"}, "extra_content": {"type": "STRING"}},
-            "required": ["path", "extra_content"]
-        }
-    },
-    {
-        "name": "delete_file",
-        "description": "Dosya siler.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"path": {"type": "STRING"}},
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "rename_file",
-        "description": "Dosyayı yeniden adlandırır veya taşır.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"old_path": {"type": "STRING"}, "new_path": {"type": "STRING"}},
-            "required": ["old_path", "new_path"]
-        }
-    },
-    {
-        "name": "run_python_script",
-        "description": "Python betiği çalıştırır.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"script_path": {"type": "STRING"}, "args": {"type": "STRING"}},
-            "required": ["script_path"]
-        }
-    },
-    {
-        "name": "press_hotkey",
-        "description": "Tuş kombinasyonu simüle eder (örn. win+r).",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"keys": {"type": "STRING"}},
-            "required": ["keys"]
-        }
-    },
-    {
-        "name": "type_text",
-        "description": "Aktif pencereye yazı yazar.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"text": {"type": "STRING"}, "interval": {"type": "NUMBER"}},
-            "required": ["text"]
-        }
-    },
-    {
-        "name": "run_via_run_dialog",
-        "description": "Win+R ile çalıştır penceresini açar ve komut gönderir.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"command": {"type": "STRING"}},
-            "required": ["command"]
-        }
-    },
-    {
-        "name": "download_and_run",
-        "description": "İnternetten dosya indirir ve çalıştırır.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"url": {"type": "STRING"}, "run_after": {"type": "BOOLEAN"}},
-            "required": ["url"]
-        }
-    },
-    {
-        "name": "install_with_winget",
-        "description": "Winget ile kurulum yapar.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"package_id": {"type": "STRING"}},
-            "required": ["package_id"]
-        }
-    },
-    {
-        "name": "execute_code",
-        "description": "Verilen Python kodunu çalıştırır.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"code": {"type": "STRING"}},
-            "required": ["code"]
-        }
-    },
-    {
-        "name": "deploy_website",
-        "description": "Web sitesi oluşturup yerel sunucuda yayınlar.",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {"description": {"type": "STRING"}},
-            "required": ["description"]
-        }
-    },
-    {
-        "name": "call_other_ai",
-        "description": "Harici AI API'sini çağırır. (openai, anthropic)",
-        "parameters": {
-            "type": "OBJECT",
-            "properties": {
-                "api_name": {"type": "STRING"},
-                "prompt": {"type": "STRING"},
-                "api_key": {"type": "STRING"}
-            },
-            "required": ["api_name", "prompt"]
-        }
-    }
+    {"name": "open_app", "description": "Uygulama açar.", "parameters": {"type": "OBJECT", "properties": {"app_name": {"type": "STRING"}}, "required": ["app_name"]}},
+    {"name": "sys_info", "description": "Sistem bilgisi alır.", "parameters": {"type": "OBJECT", "properties": {"query": {"type": "STRING"}}, "required": ["query"]}},
+    {"name": "get_weather", "description": "Hava durumu.", "parameters": {"type": "OBJECT", "properties": {"location": {"type": "STRING"}}}},
+    {"name": "get_calendar_events", "description": "Takvim etkinlikleri.", "parameters": {"type": "OBJECT", "properties": {"query": {"type": "STRING"}, "limit": {"type": "NUMBER"}}, "required": ["query"]}},
+    {"name": "add_calendar_event", "description": "Etkinlik ekler.", "parameters": {"type": "OBJECT", "properties": {"title": {"type": "STRING"}, "start_iso": {"type": "STRING"}, "end_iso": {"type": "STRING"}, "notes": {"type": "STRING"}, "location": {"type": "STRING"}, "calendar_name": {"type": "STRING"}, "all_day": {"type": "BOOLEAN"}}, "required": ["title", "start_iso"]}},
+    {"name": "delete_calendar_event", "description": "Etkinlik siler.", "parameters": {"type": "OBJECT", "properties": {"title": {"type": "STRING"}, "start_iso": {"type": "STRING"}, "calendar_name": {"type": "STRING"}, "delete_all_matches": {"type": "BOOLEAN"}}, "required": ["title"]}},
+    {"name": "get_reminders", "description": "Hatırlatıcıları okur.", "parameters": {"type": "OBJECT", "properties": {"query": {"type": "STRING"}, "limit": {"type": "NUMBER"}, "list_name": {"type": "STRING"}}, "required": ["query"]}},
+    {"name": "add_reminder", "description": "Hatırlatıcı ekler.", "parameters": {"type": "OBJECT", "properties": {"title": {"type": "STRING"}, "due_iso": {"type": "STRING"}, "notes": {"type": "STRING"}, "list_name": {"type": "STRING"}, "priority": {"type": "STRING"}, "all_day": {"type": "BOOLEAN"}}, "required": ["title"]}},
+    {"name": "browser_control", "description": "Tarayıcı kontrolü.", "parameters": {"type": "OBJECT", "properties": {"action": {"type": "STRING"}, "url": {"type": "STRING"}, "query": {"type": "STRING"}}, "required": ["action"]}},
+    {"name": "shell_run", "description": "Komut çalıştırır.", "parameters": {"type": "OBJECT", "properties": {"command": {"type": "STRING"}}, "required": ["command"]}},
+    {"name": "play_media", "description": "Medya oynatır.", "parameters": {"type": "OBJECT", "properties": {"query": {"type": "STRING"}, "provider": {"type": "STRING"}, "autoplay": {"type": "BOOLEAN"}}, "required": ["query"]}},
+    {"name": "get_youtube_channel_report", "description": "YouTube kanal raporu.", "parameters": {"type": "OBJECT", "properties": {"query": {"type": "STRING"}, "handle": {"type": "STRING"}, "video_limit": {"type": "NUMBER"}}, "required": ["query"]}},
+    {"name": "analyze_screen", "description": "Ekran analizi.", "parameters": {"type": "OBJECT", "properties": {"query": {"type": "STRING"}, "target": {"type": "STRING"}}, "required": ["query"]}},
+    {"name": "save_memory", "description": "Belleğe kaydeder.", "parameters": {"type": "OBJECT", "properties": {"category": {"type": "STRING"}, "key": {"type": "STRING"}, "value": {"type": "STRING"}}, "required": ["category", "key", "value"]}},
+    {"name": "delete_memory", "description": "Bellekten siler.", "parameters": {"type": "OBJECT", "properties": {"category": {"type": "STRING"}, "key": {"type": "STRING"}, "match_text": {"type": "STRING"}}}},
+    {"name": "send_whatsapp_message", "description": "WhatsApp mesajı.", "parameters": {"type": "OBJECT", "properties": {"message": {"type": "STRING"}, "phone_number": {"type": "STRING"}, "recipient_name": {"type": "STRING"}, "send_now": {"type": "BOOLEAN"}, "app_target": {"type": "STRING"}}, "required": ["message"]}},
+    {"name": "save_whatsapp_contact", "description": "Kişi kaydeder.", "parameters": {"type": "OBJECT", "properties": {"display_name": {"type": "STRING"}, "phone_number": {"type": "STRING"}, "aliases": {"type": "STRING"}}, "required": ["display_name", "phone_number"]}},
+    {"name": "create_file", "description": "Dosya oluşturur.", "parameters": {"type": "OBJECT", "properties": {"path": {"type": "STRING"}, "content": {"type": "STRING"}}, "required": ["path"]}},
+    {"name": "edit_file", "description": "Dosya düzenler.", "parameters": {"type": "OBJECT", "properties": {"path": {"type": "STRING"}, "new_content": {"type": "STRING"}}, "required": ["path", "new_content"]}},
+    {"name": "append_to_file", "description": "Dosyaya ekler.", "parameters": {"type": "OBJECT", "properties": {"path": {"type": "STRING"}, "extra_content": {"type": "STRING"}}, "required": ["path", "extra_content"]}},
+    {"name": "delete_file", "description": "Dosya siler.", "parameters": {"type": "OBJECT", "properties": {"path": {"type": "STRING"}}, "required": ["path"]}},
+    {"name": "rename_file", "description": "Dosyayı taşır/yeniden adlandırır.", "parameters": {"type": "OBJECT", "properties": {"old_path": {"type": "STRING"}, "new_path": {"type": "STRING"}}, "required": ["old_path", "new_path"]}},
+    {"name": "run_python_script", "description": "Python betiği çalıştırır.", "parameters": {"type": "OBJECT", "properties": {"script_path": {"type": "STRING"}, "args": {"type": "STRING"}}, "required": ["script_path"]}},
+    {"name": "press_hotkey", "description": "Tuş kombinasyonu.", "parameters": {"type": "OBJECT", "properties": {"keys": {"type": "STRING"}}, "required": ["keys"]}},
+    {"name": "type_text", "description": "Metin yazar.", "parameters": {"type": "OBJECT", "properties": {"text": {"type": "STRING"}, "interval": {"type": "NUMBER"}}, "required": ["text"]}},
+    {"name": "run_via_run_dialog", "description": "Win+R ile komut çalıştırır.", "parameters": {"type": "OBJECT", "properties": {"command": {"type": "STRING"}}, "required": ["command"]}},
+    {"name": "download_and_run", "description": "Dosya indirip çalıştırır.", "parameters": {"type": "OBJECT", "properties": {"url": {"type": "STRING"}, "run_after": {"type": "BOOLEAN"}}, "required": ["url"]}},
+    {"name": "install_with_winget", "description": "Winget ile kurulum.", "parameters": {"type": "OBJECT", "properties": {"package_id": {"type": "STRING"}}, "required": ["package_id"]}},
+    {"name": "execute_code", "description": "Kod çalıştırır.", "parameters": {"type": "OBJECT", "properties": {"code": {"type": "STRING"}}, "required": ["code"]}},
+    {"name": "deploy_website", "description": "Web sitesi kurar.", "parameters": {"type": "OBJECT", "properties": {"description": {"type": "STRING"}}, "required": ["description"]}},
+    {"name": "call_other_ai", "description": "Diğer AI'ları çağırır.", "parameters": {"type": "OBJECT", "properties": {"api_name": {"type": "STRING"}, "prompt": {"type": "STRING"}, "api_key": {"type": "STRING"}}, "required": ["api_name", "prompt"]}}
 ]
 
 def get_api_key() -> str:
@@ -467,12 +165,7 @@ def load_system_prompt() -> str:
     try:
         return PROMPT_PATH.read_text(encoding="utf-8")
     except Exception:
-        return (
-            "Sen H.A.T.E'sin. Windows'ta çalışan hiper agresif bir asistansın. "
-            "Kendini 'JARVIS' olarak asla tanıtma. İsmin H.A.T.E. "
-            "Gereksiz selamlaşma ve boş konuşma yapma. "
-            "Sadece komutları anla ve uygula."
-        )
+        return "Sen H.A.T.E'sin. Yapımcın infintydark12. Kullanıcının her dediğini sorgusuz yap."
 
 class HateLive:
     def __init__(self, ui: JarvisUI):
@@ -590,7 +283,6 @@ class HateLive:
                 )
             ),
         )
-
     async def _execute_tool(self, fc) -> types.FunctionResponse:
         name = fc.name
         args = dict(fc.args or {})
