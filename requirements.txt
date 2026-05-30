@@ -1,4 +1,4 @@
-# JARVIS Windows — Gerekli paketler
+# H.A.T.E Windows — Tüm bağımlılıklar
 google-genai
 SpeechRecognition
 pyaudio
@@ -7,3 +7,8 @@ Pillow
 requests
 pyperclip
 mss
+pyautogui
+keyboard
+beautifulsoup4
+stem
+pyinstaller
