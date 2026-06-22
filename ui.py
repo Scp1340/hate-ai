@@ -1,7 +1,7 @@
 """
 H.A.T.E Windows — UI v3
 Concentric teal rings · Segmented arcs
-Alp Ünlü / infintydark12
+infintydark12
 """
 
 import os, time, math, random, threading
